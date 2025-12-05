@@ -1,0 +1,354 @@
+
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>日本宏观经济 ESPT 仪表盘</title>
+        
+    <style>
+        body { font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif; background-color: #f9f7f7; padding: 20px; color: #333; }
+        .dashboard { max-width: 1000px; margin: auto; background-color: white; border-radius: 10px; box-shadow: 0 5px 25px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e0e0e0; }
+        .header { background: linear-gradient(135deg, #bc002d 0%, #f5878c 100%); color: white; padding: 25px 30px; text-align: center; }
+        .header h1 { margin: 0 0 10px 0; font-size: 28px; display: flex; align-items: center; justify-content: center; }
+        .flag-icon { font-size: 34px; margin-right: 15px; }
+        .timestamp { font-size: 14px; opacity: 0.9; }
+        .risk-summary { padding: 25px 30px; background-color: #fff5f5; border-bottom: 1px solid #ffd9d9; }
+        .risk-title { font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #bc002d; display: flex; align-items: center; }
+        .risk-title-icon { margin-right: 10px; }
+        .risk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .risk-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); text-align: center; border-top: 4px solid #bc002d; }
+        .risk-label { font-weight: bold; color: #666; margin-bottom: 8px; font-size: 14px; }
+        .risk-value { font-size: 26px; font-weight: bold; }
+        .dimension-section { padding: 25px 30px; border-bottom: 1px solid #eee; }
+        .dimension-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .dimension-title { font-size: 22px; font-weight: bold; color: #2c3e50; }
+        .dimension-subtitle { font-size: 14px; color: #7f8c8d; }
+        .indicators-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)); gap: 20px; }
+        .indicator-card { padding: 18px; border-radius: 8px; background-color: #f8f9fa; border-left: 4px solid #ddd; position: relative; }
+        .indicator-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .indicator-name { font-weight: bold; font-size: 16px; }
+        .indicator-ticker { font-size: 12px; color: #666; background-color: #eee; padding: 2px 8px; border-radius: 10px; }
+        .indicator-metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        .metric-item { font-size: 14px; }
+        .metric-label { font-weight: bold; color: #666; }
+        .metric-value { font-weight: 600; }
+        .indicator-rationale { font-size: 13px; color: #555; line-height: 1.5; padding: 12px; background-color: white; border-radius: 6px; margin-top: 8px; border-left: 3px solid #ddd; }
+        .level-red { color: #e74c3c; font-weight: bold; }
+        .level-orange { color: #e67e22; font-weight: bold; }
+        .level-green { color: #27ae60; font-weight: bold; }
+        .level-yellow { color: #f1c40f; font-weight: bold; }
+        .level-gray { color: #95a5a6; font-weight: bold; }
+        .veto-section { background-color: #ffe6e6; border-left: 5px solid #e74c3c; padding: 20px; margin: 20px 30px; border-radius: 8px; }
+        .veto-title { color: #e74c3c; font-weight: bold; margin-bottom: 10px; font-size: 18px; display: flex; align-items: center; }
+        .veto-icon { margin-right: 10px; }
+        .footer { padding: 20px 30px; text-align: center; color: #7f8c8d; font-size: 13px; border-top: 1px solid #eee; background-color: #f9f7f7; }
+        .methodology { font-size: 12px; color: #95a5a6; margin-top: 10px; }
+    </style>
+    
+    </head>
+    <body>
+    <div class='dashboard'>
+        <div class='header'>
+            <h1><span class='flag-icon'>🇯🇵</span>日本宏观经济 ESPT 仪表盘</h1>
+            <p class='timestamp'>生成时间: 2025-12-05 01:48:32 | Pain Index + Bias Z-Score算法</p>
+        </div>
+        
+        <div class='risk-summary'>
+            <div class='risk-title'>
+                <span class='risk-title-icon'>📋</span> 风险综合评估
+            </div>
+            <div class='risk-grid'>
+                <div class='risk-card'>
+                    <div class='risk-label'>加权风险评分</div>
+                    <div class='risk-value' style="color: #f1c40f">
+                        3.53 / 10.0
+                    </div>
+                </div>
+                <div class='risk-card'>
+                    <div class='risk-label'>宏观风险评级</div>
+                    <div class='risk-value'>🟡 黄色 (震荡)</div>
+                </div>
+                <div class='risk-card'>
+                    <div class='risk-label'>核心交易策略</div>
+                    <div class='risk-value' style="font-size: 18px; color: #2c3e50;">处于通胀与复苏的博弈期。关注半导体(T)和商社股，警惕汇率波动。...</div>
+                </div>
+            </div>
+        </div>
+    
+        <div class='dimension-section'>
+            <div class='dimension-header'>
+                <div>
+                    <div class='dimension-title'>📊 预期 (Expectation)</div>
+                    <div class='dimension-subtitle'>ESPT分析框架 - 权重: 20%</div>
+                </div>
+            </div>
+            
+            <div class='indicators-container'>
+        
+            <div class='indicator-card' style="border-left-color: #f1c40f;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟡 输入通胀 (Pain Index)</div>
+                    <div class='indicator-ticker'>Composite</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>9250.04</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>-5.7%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-yellow'>+0.43σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-yellow'>处于均值</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 原油x日元。双高代表进口成本爆炸，家庭实际购买力剧减。
+                </div>
+            </div>
+            
+            <div class='indicator-card' style="border-left-color: #f1c40f;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟡 通缩心态 (优衣库)</div>
+                    <div class='indicator-ticker'>9983.T</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>56720.00</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>+16.3%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-yellow'>+0.00σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-yellow'>处于均值</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 9983.T。股价相对于均线飙升 = 市场确认'消费降级'逻辑固化。
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+        <div class='dimension-section'>
+            <div class='dimension-header'>
+                <div>
+                    <div class='dimension-title'>🏛️ 结构 (Structure)</div>
+                    <div class='dimension-subtitle'>ESPT分析框架 - 权重: 30%</div>
+                </div>
+            </div>
+            
+            <div class='indicators-container'>
+        
+            <div class='indicator-card' style="border-left-color: #f1c40f;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟡 YCC博弈 (三菱日联)</div>
+                    <div class='indicator-ticker'>8306.T</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>2492.50</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>+24.2%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-yellow'>+0.00σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-yellow'>处于均值</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 银行股大涨 = 押注央行加息/YCC取消。对债市是系统性冲击。
+                </div>
+            </div>
+            
+            <div class='indicator-card' style="border-left-color: #f1c40f;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟡 全球Capex (Fanuc)</div>
+                    <div class='indicator-ticker'>6954.T</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>5881.00</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>+41.0%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-yellow'>-0.00σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-yellow'>处于均值</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 工业机器人。股价反映全球制造业资本开支周期。
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+        <div class='dimension-section'>
+            <div class='dimension-header'>
+                <div>
+                    <div class='dimension-title'>⚖️ 权力/政策 (Power)</div>
+                    <div class='dimension-subtitle'>ESPT分析框架 - 权重: 35%</div>
+                </div>
+            </div>
+            
+            <div class='indicators-container'>
+        
+            <div class='indicator-card' style="border-left-color: #e67e22;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟠 汇率风险 (USDJPY)</div>
+                    <div class='indicator-ticker'>USDJPY=X</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>154.97</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>+3.6%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-orange'>+1.44σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-orange'>显著偏离</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 日本央行的底线。汇率过高(贬值)触发干预风险。
+                </div>
+            </div>
+            
+            <div class='indicator-card' style="border-left-color: #f1c40f;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟡 地缘风险 (三菱重工)</div>
+                    <div class='indicator-ticker'>7011.T</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>4042.00</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>+29.6%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-yellow'>+0.00σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-yellow'>处于均值</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 军工股。反映东亚地缘政治紧张度。
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+        <div class='dimension-section'>
+            <div class='dimension-header'>
+                <div>
+                    <div class='dimension-title'>💻 技术 (Technology)</div>
+                    <div class='dimension-subtitle'>ESPT分析框架 - 权重: 15%</div>
+                </div>
+            </div>
+            
+            <div class='indicators-container'>
+        
+            <div class='indicator-card' style="border-left-color: #f1c40f;">
+                <div class='indicator-header'>
+                    <div class='indicator-name'>🟡 AI周期 (东京电子)</div>
+                    <div class='indicator-ticker'>8035.T</div>
+                </div>
+                
+                <div class='indicator-metrics'>
+                    <div class='metric-item'>
+                        <span class='metric-label'>当前值:</span>
+                        <span class='metric-value'>32940.00</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>乖离率:</span>
+                        <span class='metric-value'>+33.7%</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>Z-Score:</span>
+                        <span class='metric-value level-yellow'>-0.00σ</span>
+                    </div>
+                    <div class='metric-item'>
+                        <span class='metric-label'>状态:</span>
+                        <span class='metric-value level-yellow'>处于均值</span>
+                    </div>
+                </div>
+                
+                <div class='indicator-rationale'>
+                    <strong>逻辑解读:</strong> 逻辑: 半导体设备。日本掌握上游核心，反映全球AI硬件需求。
+                </div>
+            </div>
+            
+            </div>
+        </div>
+        
+        <div class='footer'>
+            <p>🇯🇵 日本宏观经济 ESPT 分析系统 | 基于乖离率Z-Score算法与复合熔断机制</p>
+            <div class='methodology'>
+                方法论: ESPT框架 (预期/结构/权力/技术) + Pain Index + 复合熔断逻辑
+            </div>
+            <p style="margin-top: 15px; font-size: 12px; color: #bdc3c7;">
+                免责声明: 本报告仅供参考，不构成任何投资建议。市场有风险，投资需谨慎。
+            </p>
+        </div>
+    </div>
+    </body>
+    
+    </html>
+    

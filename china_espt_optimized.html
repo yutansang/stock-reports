@@ -1,0 +1,150 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>China Stock ESPT Dashboard (Optimized)</title>
+        <style>
+            body { font-family: "Microsoft YaHei", "Segoe UI", sans-serif; background-color: #fdf2e9; padding: 20px; color: #333; }
+            .container { max-width: 960px; margin: auto; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
+            .header { background: #c0392b; color: #f4d03f; padding: 25px; text-align: center; border-bottom: 4px solid rgba(0,0,0,0.1); }
+            .header h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: 1px; }
+            .timestamp { font-size: 12px; opacity: 0.8; margin-top: 5px; }
+            
+            .status-box { padding: 20px; text-align: center; border-bottom: 1px solid #eee; background: #fff; }
+            .status-title { font-size: 22px; font-weight: bold; color: #c0392b; margin-bottom: 8px; }
+            .status-desc { color: #555; font-size: 14px; }
+            
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
+            @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+            
+            .card { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); transition: transform 0.2s; }
+            .card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
+            .card h3 { margin-top: 0; color: #c0392b; border-bottom: 2px solid #f2d7d5; padding-bottom: 8px; font-size: 15px; text-transform: uppercase; }
+            
+            .item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px dashed #f0f0f0; }
+            .item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+            
+            .label { font-weight: 700; font-size: 13px; color: #2c3e50; }
+            .rationale { font-size: 10px; color: #95a5a6; margin-top: 3px; max-width: 220px; }
+            
+            .values { text-align: right; }
+            .main-val { font-weight: 700; font-size: 15px; font-family: Consolas, monospace; }
+            .sub-val { font-size: 10px; color: #7f8c8d; margin-top: 2px; }
+            
+            .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; color: white; font-size: 10px; margin-left: 5px; vertical-align: middle; font-weight: bold; }
+            .red { background: #e74c3c; } .orange { background: #e67e22; } 
+            .yellow { background: #f1c40f; color: #444; } .green { background: #27ae60; } .gray { background: #bdc3c7; }
+            
+            .footer { padding: 15px; text-align: center; background: #fafafa; font-size: 11px; color: #aaa; border-top: 1px solid #eee; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🇨🇳 ESPT 中国市场风险仪表盘 (Optimized)</h1>
+                <div class="timestamp">生成时间: 2025-12-05 01:48:20</div>
+            </div>
+            <div class="status-box">
+                <div class="status-title">🟢 市场情绪平稳 (Stable)</div>
+                <div class="status-desc">宏观代理指标处于正常波动区间，未见显著系统性风险信号。</div>
+            </div>
+            <div class="grid">
+    <div class='card'><h3>E (预期)</h3>
+            <div class="item">
+                <div>
+                    <div class="label">风险偏好 (KWEB/FXI) <span class="badge yellow">均值回归</span></div>
+                    <div class="rationale">成长/价值比。比率暴跌=市场极度防御(悲观)。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">0.94</div>
+                    <div class="sub-val">Z: -0.20 | 乖离: -2.7%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div>
+                    <div class="label">大盘情绪 (FXI) <span class="badge orange">显著偏离</span></div>
+                    <div class="rationale">富时中国A50 ETF。价格负乖离过大=恐慌抛售。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">39.31</div>
+                    <div class="sub-val">Z: +1.51 | 乖离: +8.4%</div>
+                </div>
+            </div>
+            </div><div class='card'><h3>S (结构)</h3>
+            <div class="item">
+                <div>
+                    <div class="label">地产板块 (CHIR) <span class="badge yellow">均值回归</span></div>
+                    <div class="rationale">房地产ETF。硬着陆风险的最真实反映(尽管流动性一般)。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">12.33</div>
+                    <div class="sub-val">Z: +0.00 | 乖离: +0.0%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div>
+                    <div class="label">内需消费 (CHIQ) <span class="badge orange">显著偏离</span></div>
+                    <div class="rationale">可选消费ETF。持续走弱=内需不足的结构性确认。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">21.81</div>
+                    <div class="sub-val">Z: +1.66 | 乖离: +0.7%</div>
+                </div>
+            </div>
+            </div><div class='card'><h3>P (权力)</h3>
+            <div class="item">
+                <div>
+                    <div class="label">汇率压力 (USDCNY) <span class="badge green">低位安全</span></div>
+                    <div class="rationale">汇率急贬(正乖离)=资本外流压力，可能引发政策干预。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">7.07</div>
+                    <div class="sub-val">Z: -1.65 | 乖离: -1.8%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div>
+                    <div class="label">工业需求 (铜) <span class="badge yellow">均值回归</span></div>
+                    <div class="rationale">铜博士。价格暴跌=实体经济/基建失速风险。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">5.37</div>
+                    <div class="sub-val">Z: -0.94 | 乖离: +13.4%</div>
+                </div>
+            </div>
+            </div><div class='card'><h3>T (技术)</h3>
+            <div class="item">
+                <div>
+                    <div class="label">科技相对强弱 (CN/US) <span class="badge orange">显著偏离</span></div>
+                    <div class="rationale">CN科技跑输美股大盘=缺乏独立上涨逻辑。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">0.08</div>
+                    <div class="sub-val">Z: +1.22 | 乖离: +0.1%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div>
+                    <div class="label">新能源 (KGRN) <span class="badge orange">显著偏离</span></div>
+                    <div class="rationale">新三样出口景气度。股价反映全球贸易环境。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val">27.84</div>
+                    <div class="sub-val">Z: +1.63 | 乖离: +4.6%</div>
+                </div>
+            </div>
+            </div>
+            </div>
+            <div class="footer">
+                <b>免责声明:</b> 本报告基于离岸ETF及衍生品数据 (Yahoo Finance) 生成，仅供参考。<br>
+                核心算法: Robust Bias Z-Score Model (Win:252/0.85)
+            </div>
+        </div>
+    </body>
+    </html>
+    

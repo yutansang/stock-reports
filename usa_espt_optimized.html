@@ -1,0 +1,151 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>US Stock ESPT Dashboard (Optimized)</title>
+        <style>
+            body { font-family: "Segoe UI", "Roboto", sans-serif; background-color: #f4f6f7; padding: 20px; }
+            .container { max-width: 960px; margin: auto; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; }
+            .header { background: #2c3e50; color: white; padding: 30px; text-align: center; }
+            .header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+            .timestamp { font-size: 12px; opacity: 0.8; margin-top: 5px; }
+            
+            .status-box { padding: 25px; text-align: center; border-bottom: 1px solid #eee; }
+            .status-title { font-size: 24px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+            
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; padding: 25px; }
+            @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+            
+            .card { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; }
+            .card h3 { margin-top: 0; color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 12px; font-size: 16px; letter-spacing: 1px; }
+            
+            .item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
+            .item:last-child { border-bottom: none; }
+            
+            .label-group { flex: 1; }
+            .label { font-weight: 600; font-size: 14px; color: #2c3e50; display: flex; align-items: center; }
+            .rationale { font-size: 11px; color: #7f8c8d; margin-top: 4px; max-width: 250px; line-height: 1.4; }
+            
+            .values { text-align: right; }
+            .main-val { font-weight: bold; font-size: 16px; font-family: monospace; }
+            .sub-val { font-size: 11px; color: #95a5a6; margin-top: 2px; }
+            
+            .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+            .red { color: #c0392b; } .red .dot { background: #c0392b; }
+            .orange { color: #e67e22; } .orange .dot { background: #e67e22; }
+            .yellow { color: #f1c40f; } .yellow .dot { background: #f1c40f; }
+            .green { color: #27ae60; } .green .dot { background: #27ae60; }
+            .gray { color: #95a5a6; } .gray .dot { background: #95a5a6; }
+            
+            .footer { padding: 20px; text-align: center; color: #999; font-size: 11px; background: #f8f9fa; border-top: 1px solid #eee; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>🇺🇸 ESPT 美国股票市场风险仪表盘 (Optimized)</h1>
+                <div class="timestamp">生成时间: 2025-12-05 01:48:22</div>
+            </div>
+            <div class="status-box">
+                <div class="status-title">🟢 趋势健康 (Healthy Trend)</div>
+                <div>各项宏观指标处于正常波动区间 (Goldilocks)，适合顺势而为。</div>
+            </div>
+            <div class="grid">
+    <div class='card'><h3>E (预期)</h3>
+            <div class="item">
+                <div class="label-group">
+                    <div class="label yellow"><span class="dot"></span>恐慌指数 (VIX)</div>
+                    <div class="rationale">华尔街恐惧指标。正乖离过大(飙升)=市场极度恐慌。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val yellow">均值回归</div>
+                    <div class="sub-val">Z: -0.74 | 乖离: -16.9%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div class="label-group">
+                    <div class="label yellow"><span class="dot"></span>贪婪/防御 (XLY/XLP)</div>
+                    <div class="rationale">可选/必选消费比。比率下行=资金涌入防御板块避险。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val yellow">均值回归</div>
+                    <div class="sub-val">Z: -0.22 | 乖离: +9.7%</div>
+                </div>
+            </div>
+            </div><div class='card'><h3>S (结构)</h3>
+            <div class="item">
+                <div class="label-group">
+                    <div class="label yellow"><span class="dot"></span>市场广度 (RSP/SPY)</div>
+                    <div class="rationale">等权/市值比。比率下行=涨势只集中在巨头，市场脆弱。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val yellow">均值回归</div>
+                    <div class="sub-val">Z: +0.90 | 乖离: -5.2%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div class="label-group">
+                    <div class="label yellow"><span class="dot"></span>信用底座 (HYG)</div>
+                    <div class="rationale">垃圾债ETF。价格崩盘(负乖离)=企业融资环境恶化。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val yellow">均值回归</div>
+                    <div class="sub-val">Z: -0.22 | 乖离: +1.3%</div>
+                </div>
+            </div>
+            </div><div class='card'><h3>P (权力)</h3>
+            <div class="item">
+                <div class="label-group">
+                    <div class="label orange"><span class="dot"></span>收益率曲线 (10Y-2Y)</div>
+                    <div class="rationale">衰退预警最准指标。倒挂加深(负值变大)=衰退逼近。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val orange">显著偏离</div>
+                    <div class="sub-val">Z: +1.52 | 乖离: +23.3%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div class="label-group">
+                    <div class="label red"><span class="dot"></span>边际流动性 (BTC)</div>
+                    <div class="rationale">对美元流动性最敏感的7x24资产。暴跌=流动性收紧。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val red">极度异常</div>
+                    <div class="sub-val">Z: +2.25 | 乖离: -12.5%</div>
+                </div>
+            </div>
+            </div><div class='card'><h3>T (技术)</h3>
+            <div class="item">
+                <div class="label-group">
+                    <div class="label yellow"><span class="dot"></span>科技拥挤度 (QQQ/SPY)</div>
+                    <div class="rationale">比率过高(正乖离)=交易过度拥挤，随时可能踩踏。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val yellow">均值回归</div>
+                    <div class="sub-val">Z: +0.67 | 乖离: +3.2%</div>
+                </div>
+            </div>
+            
+            <div class="item">
+                <div class="label-group">
+                    <div class="label green"><span class="dot"></span>AI引擎 (SMH)</div>
+                    <div class="rationale">半导体周期。跌破年线(负乖离)=牛市发动机熄火。</div>
+                </div>
+                <div class="values">
+                    <div class="main-val green">低位安全</div>
+                    <div class="sub-val">Z: -1.45 | 乖离: +32.8%</div>
+                </div>
+            </div>
+            </div>
+            </div>
+            <div class="footer">
+                Data Source: Yahoo Finance (Real-time) | Algorithm: Robust Bias Z-Score (Win:252/0.85, Threshold:2.2)
+            </div>
+        </div>
+    </body>
+    </html>
+    
