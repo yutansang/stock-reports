@@ -172,9 +172,10 @@ if __name__ == "__main__":
     # --- FINAL FIX in main block ---
     report_html = generate_report_html(us_indicators, melt_down_messages, analyzer, country="美国")
     # -----------------------------
-    file_name = f"US_Econ_ESPT_Report_v14_{datetime.now().strftime('%Y%m%d_%H%M')}.html"
+    file_name = "usa_econ_reportyu.html"
     with open(file_name, 'w', encoding='utf-8') as f:
         f.write(report_html)
     print(f"\n✅ 报告已生成: {file_name}")
     if analyzer.data_issues:
         print(f"\n⚠️  注意：在数据获取过程中检测到问题。请查看HTML报告顶部的“数据质量报告”获取详细信息。")
+
