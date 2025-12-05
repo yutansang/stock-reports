@@ -71,7 +71,7 @@ class MacroAnalyzer:
         risk_z = -z_score if inverse else z_score
         return risk_z, cur_bias
 
-    def fetch_data_safe(self, ticker, period="2y"):
+    def fetch_data_safe(self, ticker, period="5y"):
         """带重试机制的数据获取"""
         for _ in range(3): # 增加一次重试
             try:
@@ -346,3 +346,4 @@ if __name__ == "__main__":
         generate_html_report(data)
     except Exception as e:
         print(f"❌ 程序运行出错: {e}")
+
