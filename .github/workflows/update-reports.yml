@@ -1,5 +1,8 @@
 name: Generate and Deploy Stock Reports
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '0 * * * *'
@@ -23,20 +26,15 @@ jobs:
           pip install yfinance pandas numpy
 
       - name: Run Python Scripts to Generate Reports
-        # --- 只需要修改这里 --- #
         run: |
           echo "开始生成报告..."
-          # 运行原来的3个股票报告脚本
           python china_stock_ESPT.py
           python usa_stockESPT.py
           python japan_stock_ESPT.py
-          
-          # 运行新增的3个经济报告脚本
           python china_econ_ESPT.py
           python japan_econ_ESPT.py
           python us_econESPT.py
           echo "所有报告生成完毕！"
-        # --- 修改结束 --- #
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
