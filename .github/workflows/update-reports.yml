@@ -34,6 +34,7 @@ jobs:
           python china_econ_ESPT.py
           python japan_econ_ESPT.py
           python us_econESPT.py
+          python us_econESPTyu.py
           echo "所有报告生成完毕！"
 
       - name: Deploy to GitHub Pages
