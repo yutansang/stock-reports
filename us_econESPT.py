@@ -27,6 +27,7 @@ class MacroAnalyzer:
 
     def calculate_robust_z_score(self, series, inverse=False):
         """核心算法：乖离率 Z-Score (Bias Z-Score)"""
+        min_req = int(self.window_long * 0.8)
         if len(series) < self.min_data_points:
             return 0, 0.0
         # 1. 计算年线
@@ -42,11 +43,14 @@ class MacroAnalyzer:
         bias_series = (series_valid / mean_valid) - 1
 
         # 3. Z-Score 标准化
-        bias_mean = bias_series.rolling(window=self.window_long).mean()
-        bias_std = bias_series.rolling(window=self.window_long).std()
+        bias_mean = bias_series.rolling(window=self.window_long, min_periods=min_req).mean() # <--- 修改
+        bias_std = bias_series.rolling(window=self.window_long, min_periods=min_req).std()   # <--- 修改
 
         last_idx = bias_series.index[-1]
         cur_bias = bias_series.loc[last_idx]
+
+        if last_idx not in bias_mean.index or pd.isna(bias_mean.loc[last_idx]):
+             return 0, cur_bias
 
         cur_mean = bias_mean.loc[last_idx]
         cur_std = bias_std.loc[last_idx]
@@ -64,7 +68,7 @@ class MacroAnalyzer:
 
         return risk_z, cur_bias
 
-    def fetch_data_safe(self, ticker, period="2y"):
+    def fetch_data_safe(self, ticker, period="5y"):
         """带重试的数据获取"""
         for _ in range(2):
             try:
@@ -823,3 +827,4 @@ if __name__ == "__main__":
     except Exception as e:
 
         print(f"Critical Error: {e}")
+
