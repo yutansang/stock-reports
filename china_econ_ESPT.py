@@ -22,21 +22,36 @@ class MacroAnalyzer:
 
     def calculate_robust_z_score(self, series, inverse=False):
         """核心算法：乖离率 Z-Score (Bias Z-Score)"""
-        if len(series) < self.min_data_points:
+        # 放宽最小数据要求到窗口的 80% (约200天)，提高鲁棒性
+        min_req = int(self.window_long * 0.8)  # <--- 新增：定义最小周期
+
+        if len(series) < min_req:
             return 0, 0.0
-        rolling_mean = series.rolling(window=self.window_long, min_periods=self.window_long).mean()
+        
+        # 1. 计算年线 (修改 min_periods)
+        rolling_mean = series.rolling(window=self.window_long, min_periods=min_req).mean() # <--- 修改
+
+        # 2. 计算乖离率 (Bias)
         valid_idx = rolling_mean.index[~rolling_mean.isna()]
         if len(valid_idx) == 0:
             return 0, 0.0
+
         series_valid = series.loc[valid_idx]
         mean_valid = rolling_mean.loc[valid_idx]
         bias_series = (series_valid / mean_valid) - 1
 
-        bias_mean = bias_series.rolling(window=self.window_long).mean()
-        bias_std = bias_series.rolling(window=self.window_long).std()
+        # 3. Z-Score 标准化 (修改 min_periods)
+        # 这里也需要放宽，否则第二层滚动依然会失败
+        bias_mean = bias_series.rolling(window=self.window_long, min_periods=min_req).mean() # <--- 修改
+        bias_std = bias_series.rolling(window=self.window_long, min_periods=min_req).std()   # <--- 修改
 
         last_idx = bias_series.index[-1]
         cur_bias = bias_series.loc[last_idx]
+
+        # 加上安全检查，防止刚开始计算时的空值
+        if last_idx not in bias_mean.index or pd.isna(bias_mean.loc[last_idx]):
+             return 0, cur_bias
+
         cur_mean = bias_mean.loc[last_idx]
         cur_std = bias_std.loc[last_idx]
 
@@ -44,11 +59,17 @@ class MacroAnalyzer:
             z_score = 0
         else:
             z_score = (cur_bias - cur_mean) / cur_std
+
+        # Winsorizing
         z_score = np.clip(z_score, -4.0, 4.0)
+
+        # 风险方向: inverse=True 表示数值越低越危险(如股价)
         risk_z = -z_score if inverse else z_score
+
         return risk_z, cur_bias
 
-    def fetch_data_safe(self, ticker, period="2y"):
+
+    def fetch_data_safe(self, ticker, period="5y"):
         """带重试的数据获取"""
         for _ in range(2):
             try:
@@ -546,6 +567,7 @@ if __name__ == "__main__":
         print(f"\n📄 HTML报告已保存至: {result['html_file']}")
     except Exception as e:
         print(f"Critical Error: {e}")
+
 
 
 
