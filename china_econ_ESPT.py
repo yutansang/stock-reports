@@ -453,7 +453,7 @@ def generate_html_report_china(indicators, total_score, final_risk, advice, veto
     {html_body}
     </html>"""
 
-    filename = f"china_macro_espt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+    filename = "china_econ_report.html"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(final_html)
     print(f"✅ 生成HTML报告: {filename}")
@@ -546,5 +546,6 @@ if __name__ == "__main__":
         print(f"\n📄 HTML报告已保存至: {result['html_file']}")
     except Exception as e:
         print(f"Critical Error: {e}")
+
 
 
