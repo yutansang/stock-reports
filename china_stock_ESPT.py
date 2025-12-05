@@ -293,7 +293,7 @@ def generate_html_report(indicators):
     <body>
         <div class="container">
             <div class="header">
-                <h1>🇨🇳 ESPT 中国市场风险仪表盘 (Optimized)</h1>
+                <h1>🇨🇳 ESPT 中国股票市场风险仪表盘 (Optimized)</h1>
                 <div class="timestamp">生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
             </div>
             <div class="status-box">
@@ -346,4 +346,5 @@ if __name__ == "__main__":
         generate_html_report(data)
     except Exception as e:
         print(f"❌ 程序运行出错: {e}")
+
 
