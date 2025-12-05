@@ -404,7 +404,7 @@ def generate_html_report_japan(indicators, total_score, final_risk, advice, veto
     </html>
     """
 
-    filename = f"japan_macro_espt_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
+    filename = "japan_econ_report.html"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(final_html)
 
@@ -506,4 +506,5 @@ if __name__ == "__main__":
         result = generate_report(data)
         print(f"\n📄 HTML报告已保存至: {result['html_file']}")
     except Exception as e:
+
         print(f"Critical Error: {e}")
