@@ -341,7 +341,7 @@ def generate_html_report(indicators):
     </html>
     """
     
-    filename = "us_espt_optimized.html"
+    filename = "usa_espt_optimized.html"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"✅ 报告已生成: {os.path.abspath(filename)}")
@@ -352,3 +352,4 @@ if __name__ == "__main__":
         generate_html_report(data)
     except Exception as e:
         print(f"❌ 程序运行出错: {e}")
+
