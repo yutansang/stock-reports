@@ -3,147 +3,160 @@
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>US Stock ESPT Dashboard (Optimized)</title>
+        <title>US Market Monitor</title>
         <style>
-            body { font-family: "Segoe UI", "Roboto", sans-serif; background-color: #f4f6f7; padding: 20px; }
-            .container { max-width: 960px; margin: auto; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); overflow: hidden; }
-            .header { background: #2c3e50; color: white; padding: 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 26px; font-weight: 600; }
+            body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; }
+            .container { max-width: 960px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
+            
+            .header { background: #2c3e50; color: white; padding: 25px; text-align: center; }
+            .header h1 { margin: 0; font-size: 22px; }
             .timestamp { font-size: 12px; opacity: 0.8; margin-top: 5px; }
             
-            .status-box { padding: 25px; text-align: center; border-bottom: 1px solid #eee; }
-            .status-title { font-size: 24px; font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+            .status-box { padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
+            .status-title { font-size: 24px; font-weight: bold; color: #2c3e50; }
             
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; padding: 25px; }
-            @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+            .grid { padding: 20px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); }
             
-            .card { background: #fff; border: 1px solid #e1e4e8; border-radius: 8px; padding: 20px; }
-            .card h3 { margin-top: 0; color: #34495e; border-bottom: 2px solid #ecf0f1; padding-bottom: 12px; font-size: 16px; letter-spacing: 1px; }
+            .card { border: 1px solid #eee; border-radius: 8px; overflow: hidden; background: #fff; }
+            .card-header { background: #f8f9fa; padding: 10px 15px; font-weight: bold; color: #555; font-size: 14px; border-bottom: 1px solid #eee; }
+            .card-body { padding: 15px; }
             
-            .item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #eee; }
-            .item:last-child { border-bottom: none; }
+            .item { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px dashed #f0f0f0; padding-bottom: 15px; }
+            .item:last-child { border: none; margin-bottom: 0; padding-bottom: 0; }
             
-            .label-group { flex: 1; }
-            .label { font-weight: 600; font-size: 14px; color: #2c3e50; display: flex; align-items: center; }
-            .rationale { font-size: 11px; color: #7f8c8d; margin-top: 4px; max-width: 250px; line-height: 1.4; }
+            .info { flex: 1; margin-right: 15px; }
+            .item-name { font-weight: bold; font-size: 15px; color: #2c3e50; }
+            .item-desc { font-size: 13px; color: #777; margin: 4px 0; }
+            .item-rule { font-size: 12px; color: #444; background: #fff8e1; padding: 6px; border-radius: 4px; display: block; margin-top: 6px; line-height: 1.5; border-left: 3px solid #f1c40f; }
             
-            .values { text-align: right; }
-            .main-val { font-weight: bold; font-size: 16px; font-family: monospace; }
-            .sub-val { font-size: 11px; color: #95a5a6; margin-top: 2px; }
+            .stats { text-align: right; min-width: 90px; }
+            .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+            .red { background: #e74c3c; } .orange { background: #f39c12; } .yellow { background: #f1c40f; color: #444; } .green { background: #27ae60; } .gray { background: #ccc; }
             
-            .dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-            .red { color: #c0392b; } .red .dot { background: #c0392b; }
-            .orange { color: #e67e22; } .orange .dot { background: #e67e22; }
-            .yellow { color: #f1c40f; } .yellow .dot { background: #f1c40f; }
-            .green { color: #27ae60; } .green .dot { background: #27ae60; }
-            .gray { color: #95a5a6; } .gray .dot { background: #95a5a6; }
-            
-            .footer { padding: 20px; text-align: center; color: #999; font-size: 11px; background: #f8f9fa; border-top: 1px solid #eee; }
+            .z-score { font-family: monospace; font-size: 14px; font-weight: bold; color: #2c3e50; }
+            .bias { font-size: 12px; color: #999; }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🇺🇸 ESPT 美国股票市场风险仪表盘 (Optimized)</h1>
-                <div class="timestamp">生成时间: 2025-12-10 04:26:01</div>
+                <h1>🇺🇸 ESPT 美国宏观风险仪表盘 (逻辑修正版)</h1>
+                <div class="timestamp">更新时间: 2025-12-10 05:14:37</div>
             </div>
             <div class="status-box">
                 <div class="status-title">🟢 趋势健康 (Healthy Trend)</div>
-                <div>各项宏观指标处于正常波动区间 (Goldilocks)，适合顺势而为。</div>
+                <div>核心指标都在正常波动范围内，没有发现明显的系统性风险。</div>
             </div>
+            
             <div class="grid">
-    <div class='card'><h3>E (预期)</h3>
+    <div class='card'><div class='card-header'>E (预期 Sentiment)</div><div class='card-body'>
             <div class="item">
-                <div class="label-group">
-                    <div class="label yellow"><span class="dot"></span>恐慌指数 (VIX)</div>
-                    <div class="rationale">华尔街恐惧指标。正乖离过大(飙升)=市场极度恐慌。</div>
+                <div class="info">
+                    <div class="item-name">恐慌指数 (VIX)</div>
+                    <div class="item-desc">衡量华尔街的恐惧程度。</div>
+                    <div class="item-rule">🔴 风险：Z > 2.0 代表极度恐慌。<br>🟢 安全：Z < -1.0 代表情绪平稳。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val yellow">均值回归</div>
-                    <div class="sub-val">Z: -0.56 | 乖离: -11.0%</div>
+                <div class="stats">
+                    <div class="badge yellow">正常震荡</div>
+                    <div>Z: <span class="z-score">-0.56</span></div>
+                    <div class="bias">B: -11.0%</div>
                 </div>
             </div>
             
             <div class="item">
-                <div class="label-group">
-                    <div class="label yellow"><span class="dot"></span>贪婪/防御 (XLY/XLP)</div>
-                    <div class="rationale">可选/必选消费比。比率下行=资金涌入防御板块避险。</div>
+                <div class="info">
+                    <div class="item-name">贪婪/防御比 (XLY/XLP)</div>
+                    <div class="item-desc">资金是在进攻(消费)还是防守(必需品)？</div>
+                    <div class="item-rule">🔴 风险：Z < -2.0 代表资金疯狂防御。<br>🟢 强劲：Z > 1.0 代表风险偏好极高。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val yellow">均值回归</div>
-                    <div class="sub-val">Z: -0.16 | 乖离: +9.2%</div>
+                <div class="stats">
+                    <div class="badge yellow">正常震荡</div>
+                    <div>Z: <span class="z-score">+0.16</span></div>
+                    <div class="bias">B: +9.2%</div>
                 </div>
             </div>
-            </div><div class='card'><h3>S (结构)</h3>
+            </div></div><div class='card'><div class='card-header'>S (结构 Structure)</div><div class='card-body'>
             <div class="item">
-                <div class="label-group">
-                    <div class="label yellow"><span class="dot"></span>市场广度 (RSP/SPY)</div>
-                    <div class="rationale">等权/市值比。比率下行=涨势只集中在巨头，市场脆弱。</div>
+                <div class="info">
+                    <div class="item-name">市场广度 (RSP/SPY)</div>
+                    <div class="item-desc">中小票表现 vs 巨头表现。</div>
+                    <div class="item-rule">🔴 风险：Z < -2.0 代表由于巨头吸血，市场脆弱。<br>🟢 强劲：Z > 1.0 代表普涨牛市。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val yellow">均值回归</div>
-                    <div class="sub-val">Z: +1.00 | 乖离: -5.5%</div>
+                <div class="stats">
+                    <div class="badge yellow">正常震荡</div>
+                    <div>Z: <span class="z-score">-1.00</span></div>
+                    <div class="bias">B: -5.5%</div>
                 </div>
             </div>
             
             <div class="item">
-                <div class="label-group">
-                    <div class="label yellow"><span class="dot"></span>信用底座 (HYG)</div>
-                    <div class="rationale">垃圾债ETF。价格崩盘(负乖离)=企业融资环境恶化。</div>
+                <div class="info">
+                    <div class="item-name">信用底座 (HYG)</div>
+                    <div class="item-desc">垃圾债价格，企业融资环境的晴雨表。</div>
+                    <div class="item-rule">🔴 风险：Z < -2.0 代表信贷危机/借不到钱。<br>🟢 强劲：Z > 1.0 代表资金泛滥。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val yellow">均值回归</div>
-                    <div class="sub-val">Z: +0.16 | 乖离: +0.9%</div>
+                <div class="stats">
+                    <div class="badge yellow">正常震荡</div>
+                    <div>Z: <span class="z-score">-0.16</span></div>
+                    <div class="bias">B: +0.9%</div>
                 </div>
             </div>
-            </div><div class='card'><h3>P (权力)</h3>
+            </div></div><div class='card'><div class='card-header'>P (权力 Power)</div><div class='card-body'>
             <div class="item">
-                <div class="label-group">
-                    <div class="label orange"><span class="dot"></span>收益率曲线 (10Y-2Y)</div>
-                    <div class="rationale">衰退预警最准指标。倒挂加深(负值变大)=衰退逼近。</div>
+                <div class="info">
+                    <div class="item-name">收益率曲线 (10Y-3M)</div>
+                    <div class="item-desc">最准的衰退预警指标。负值即为倒挂。</div>
+                    <div class="item-rule">🔴 风险：Z < -2.0 (深跌) 代表倒挂加剧，衰退逼近。<br>🟢 修复：Z > 1.0 代表曲线陡峭化修复。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val orange">显著偏离</div>
-                    <div class="sub-val">Z: +1.65 | 乖离: +16.3%</div>
+                <div class="stats">
+                    <div class="badge yellow">正常震荡</div>
+                    <div>Z: <span class="z-score">+0.23</span></div>
+                    <div class="bias">B: +162.1%</div>
                 </div>
             </div>
             
             <div class="item">
-                <div class="label-group">
-                    <div class="label orange"><span class="dot"></span>边际流动性 (BTC)</div>
-                    <div class="rationale">对美元流动性最敏感的7x24资产。暴跌=流动性收紧。</div>
+                <div class="info">
+                    <div class="item-name">边际流动性 (BTC)</div>
+                    <div class="item-desc">美元流动性的敏感情绪指标。</div>
+                    <div class="item-rule">🔴 风险：Z < -2.0 代表流动性枯竭/崩盘。<br>🟢 强劲：Z > 2.0 代表流动性极度充裕。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val orange">显著偏离</div>
-                    <div class="sub-val">Z: +2.12 | 乖离: -12.6%</div>
+                <div class="stats">
+                    <div class="badge orange">显著回调</div>
+                    <div>Z: <span class="z-score">-2.11</span></div>
+                    <div class="bias">B: -12.5%</div>
                 </div>
             </div>
-            </div><div class='card'><h3>T (技术)</h3>
+            </div></div><div class='card'><div class='card-header'>T (技术 Tech)</div><div class='card-body'>
             <div class="item">
-                <div class="label-group">
-                    <div class="label yellow"><span class="dot"></span>科技拥挤度 (QQQ/SPY)</div>
-                    <div class="rationale">比率过高(正乖离)=交易过度拥挤，随时可能踩踏。</div>
+                <div class="info">
+                    <div class="item-name">科技拥挤度 (QQQ/SPY)</div>
+                    <div class="item-desc">科技股是否过度拥挤？</div>
+                    <div class="item-rule">🔴 风险：Z > 2.0 代表交易过热，容易踩踏。<br>🟢 安全：Z < -1.0 代表科技股无人问津。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val yellow">均值回归</div>
-                    <div class="sub-val">Z: +0.91 | 乖离: +3.7%</div>
+                <div class="stats">
+                    <div class="badge yellow">正常震荡</div>
+                    <div>Z: <span class="z-score">+0.91</span></div>
+                    <div class="bias">B: +3.7%</div>
                 </div>
             </div>
             
             <div class="item">
-                <div class="label-group">
-                    <div class="label green"><span class="dot"></span>AI引擎 (SMH)</div>
-                    <div class="rationale">半导体周期。跌破年线(负乖离)=牛市发动机熄火。</div>
+                <div class="info">
+                    <div class="item-name">AI引擎 (SMH)</div>
+                    <div class="item-desc">半导体周期，本轮牛市发动机。</div>
+                    <div class="item-rule">🔴 风险：Z < -2.0 代表牛市逻辑熄火。<br>🟢 强劲：Z > 2.0 代表AI泡沫/主升浪。</div>
                 </div>
-                <div class="values">
-                    <div class="main-val green">低位安全</div>
-                    <div class="sub-val">Z: -1.54 | 乖离: +34.8%</div>
+                <div class="stats">
+                    <div class="badge green">趋势强劲</div>
+                    <div>Z: <span class="z-score">+1.54</span></div>
+                    <div class="bias">B: +34.8%</div>
                 </div>
             </div>
+            </div></div>
             </div>
-            </div>
-            <div class="footer">
-                Data Source: Yahoo Finance (Real-time) | Algorithm: Robust Bias Z-Score (Win:252/0.85, Threshold:2.2)
+            <div style="text-align:center; padding:15px; color:#999; font-size:12px;">
+                Z-Score > 0 代表价格高于年线 (趋势向上) | Z-Score < 0 代表价格低于年线 (趋势向下)
             </div>
         </div>
     </body>
