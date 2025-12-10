@@ -1,145 +1,127 @@
 
     <!DOCTYPE html>
-    <html>
+    <html lang="zh">
     <head>
         <meta charset="UTF-8">
-        <title>Japan Stock ESPT Dashboard (Optimized)</title>
+        <title>Japan Real-Time Sentinel</title>
         <style>
-            body { font-family: "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif; background-color: #f9f9f9; padding: 20px; color: #333; }
-            .container { max-width: 960px; margin: auto; background: white; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-radius: 4px; }
-            .header { background: #bc002d; color: white; padding: 30px; text-align: center; }
-            .header h1 { margin: 0; font-size: 26px; letter-spacing: 2px; }
-            .timestamp { font-size: 12px; opacity: 0.8; margin-top: 5px; }
+            :root { --bg: #f8fafc; --card: #ffffff; --text: #334155; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 40px; margin: 0; }
+            .container { max-width: 960px; margin: 0 auto; }
             
-            .status-box { padding: 25px; text-align: center; border-bottom: 1px solid #eee; background: #fff; }
-            .status-title { font-size: 22px; font-weight: bold; color: #bc002d; margin-bottom: 10px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 35px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+            .header h1 { margin: 0; font-size: 26px; }
+            .meta { font-size: 14px; opacity: 0.9; margin-top: 10px; font-family: monospace; }
             
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }
-            @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+            .section-title { font-size: 16px; font-weight: bold; color: #64748b; margin: 25px 0 10px 5px; border-left: 4px solid #cbd5e1; padding-left: 10px; }
             
-            .card { padding: 15px; border: 1px solid #eee; background: #fff; }
-            .card h3 { margin-top: 0; color: #333; font-size: 15px; border-left: 4px solid #bc002d; padding-left: 10px; }
+            .card { background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }
+            table { width: 100%; border-collapse: collapse; }
+            th { text-align: left; padding: 12px 20px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 600; }
+            td { padding: 12px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+            tr:last-child td { border-bottom: none; }
             
-            .item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px dotted #eee; }
-            .item:last-child { border-bottom: none; }
+            .name { font-weight: bold; font-size: 14px; display: block; }
+            .desc { font-size: 11px; color: #94a3b8; }
             
-            .label { font-weight: 600; font-size: 14px; }
-            .rationale { font-size: 10px; color: #888; margin-top: 3px; }
+            .tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }
+            .red { background: #ef4444; } .orange { background: #f97316; } 
+            .green { background: #10b981; } .blue { background: #3b82f6; } .gray { background: #94a3b8; }
             
-            .values { text-align: right; }
-            .main-val { font-weight: bold; font-size: 16px; font-family: monospace; }
-            .sub-val { font-size: 11px; color: #666; }
+            .z-val { font-family: monospace; font-weight: bold; font-size: 13px; }
+            .rank-val { font-size: 10px; color: #64748b; }
             
-            .tag { padding: 2px 6px; border-radius: 2px; font-size: 10px; color: white; margin-left: 5px; }
-            .red { background: #c0392b; } .orange { background: #e67e22; } 
-            .yellow { background: #f1c40f; color: #333; } .green { background: #27ae60; } .gray { background: #95a5a6; }
-            
-            .footer { padding: 15px; text-align: center; background: #f4f4f4; font-size: 11px; color: #777; border-top: 1px solid #ddd; }
+            .footer { text-align: center; margin-top: 40px; font-size: 11px; color: #cbd5e1; }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🇯🇵 ESPT 日本股票风险仪表盘 (Optimized)</h1>
-                <div class="timestamp">生成时间: 2025-12-10 06:20:04</div>
+                <h1>🇯🇵 Japan Sentinel <span style="font-size:16px; opacity:0.8;">| 实时宏观监测</span></h1>
+                <div class="meta">🟢 市场环境：温和 (Neutral)</div>
+                <div class="meta">数据更新: 2025-12-10 07:09:34</div>
             </div>
-            <div class="status-box">
-                <div class="status-title">🟢 市场环境良好 (Positive)</div>
-                <div>宏观指标平稳。通胀温和，汇率处于可控区间，外资情绪稳定。</div>
-            </div>
-            <div class="grid">
-    <div class='card'><h3>E (预期)</h3>
-            <div class="item">
-                <div>
-                    <div class="label">恐慌指数 (N225 Vol) <span class="tag yellow">均值回归</span></div>
-                    <div class="rationale">日经波动率。飙升(正乖离)=市场恐慌。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">24.02</div>
-                    <div class="sub-val">Z: +0.53 | 乖离: +16.3%</div>
-                </div>
-            </div>
+    <div class='section-title'>宏观脉搏 (Macro)</div><div class='card'><table><thead><tr><th width='35%'>指标</th><th width='15%'>状态</th><th width='20%'>数据 (Z | Rank)</th><th width='30%'>30日趋势</th></tr></thead><tbody>
+            <tr>
+                <td>
+                    <span class="name">家庭痛苦指数</span>
+                    <span class="desc">逻辑: 油价×汇率。Z为正 = 输入性通胀压力大。</span>
+                </td>
+                <td><span class="tag blue">正常</span></td>
+                <td>
+                    <div class="z-val">Z: +0.31</div>
+                    <div class="rank-val">Rank: 61%</div>
+                </td>
+                <td><svg width="100" height="30"><polyline points="0.0,12.9 3.4,3.3 6.9,1.3 10.3,6.6 13.8,20.0 17.2,19.6 20.7,20.9 24.1,13.0 27.6,1.6 31.0,30.0 34.5,25.1 37.9,10.0 41.4,12.2 44.8,0.0 48.3,13.3 51.7,10.5 55.2,21.1 58.6,15.1 62.1,24.1 65.5,19.2 69.0,19.2 72.4,20.1 75.9,13.0 79.3,22.1 82.8,17.6 86.2,12.6 89.7,7.9 93.1,20.4 96.6,25.3 100.0,19.9" style="fill:none;stroke:#ef4444;stroke-width:1.5" /></svg></td>
+            </tr>
             
-            <div class="item">
-                <div>
-                    <div class="label">家庭痛苦指数 (Oil*Yen) <span class="tag yellow">均值回归</span></div>
-                    <div class="rationale">油价与汇率双升=购买力缩水，利空消费。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">9145.95</div>
-                    <div class="sub-val">Z: +0.30 | 乖离: -6.5%</div>
-                </div>
-            </div>
-            </div><div class='card'><h3>S (结构)</h3>
-            <div class="item">
-                <div>
-                    <div class="label">通胀预期 (东证REITs) <span class="tag yellow">均值回归</span></div>
-                    <div class="rationale">房地产信托ETF。上涨确认国内资产通胀逻辑，下跌则为通缩回归。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">2128.00</div>
-                    <div class="sub-val">Z: -0.97 | 乖离: +10.0%</div>
-                </div>
-            </div>
+            <tr>
+                <td>
+                    <span class="name">日元汇率 (USD/JPY)</span>
+                    <span class="desc">逻辑: Z>2.5 警戒央行干预; Z<-2.0 警戒套息平仓。</span>
+                </td>
+                <td><span class="tag green">有利贬值</span></td>
+                <td>
+                    <div class="z-val">Z: +1.78</div>
+                    <div class="rank-val">Rank: 98%</div>
+                </td>
+                <td><svg width="100" height="30"><polyline points="0.0,30.0 3.4,22.4 6.9,20.5 10.3,20.4 13.8,24.6 17.2,21.3 20.7,28.5 24.1,22.9 27.6,20.8 31.0,21.3 34.5,17.1 37.9,17.7 41.4,18.0 44.8,13.5 48.3,11.8 51.7,2.4 55.2,0.0 58.6,4.4 62.1,2.8 65.5,7.4 69.0,7.3 72.4,7.0 75.9,9.3 79.3,11.7 82.8,10.1 86.2,14.6 89.7,14.4 93.1,13.1 96.6,9.8 100.0,4.5" style="fill:none;stroke:#10b981;stroke-width:1.5" /></svg></td>
+            </tr>
+            </tbody></table></div><div class='section-title'>市场结构 (Structure)</div><div class='card'><table><thead><tr><th width='35%'>指标</th><th width='15%'>状态</th><th width='20%'>数据 (Z | Rank)</th><th width='30%'>30日趋势</th></tr></thead><tbody>
+            <tr>
+                <td>
+                    <span class="name">加息押注 (MUFG)</span>
+                    <span class="desc">逻辑: 银行暴涨(Z正) = 押注YCC取消 = 债市利空。</span>
+                </td>
+                <td><span class="tag blue">正常</span></td>
+                <td>
+                    <div class="z-val">Z: +0.00</div>
+                    <div class="rank-val">Rank: 66%</div>
+                </td>
+                <td><svg width="100" height="30"><polyline points="0.0,30.0 3.4,29.2 6.9,24.3 10.3,23.4 13.8,23.1 17.2,27.6 20.7,23.4 24.1,25.2 27.6,23.4 31.0,24.4 34.5,15.2 37.9,9.3 41.4,9.2 44.8,12.1 48.3,21.6 51.7,22.2 55.2,16.8 58.6,16.9 62.1,17.8 65.5,9.7 69.0,13.4 72.4,12.4 75.9,7.8 79.3,0.7 82.8,7.0 86.2,1.7 89.7,0.0 93.1,3.6 96.6,5.1 100.0,7.2" style="fill:none;stroke:#10b981;stroke-width:1.5" /></svg></td>
+            </tr>
             
-            <div class="item">
-                <div>
-                    <div class="label">加息押注 (三菱日联) <span class="tag yellow">均值回归</span></div>
-                    <div class="rationale">银行股暴涨(正乖离)=市场押注YCC取消/加息，利空债市。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">2469.50</div>
-                    <div class="sub-val">Z: +0.59 | 乖离: +20.3%</div>
-                </div>
-            </div>
-            </div><div class='card'><h3>P (权力)</h3>
-            <div class="item">
-                <div>
-                    <div class="label">汇率风险 (USDJPY) <span class="tag orange">显著偏离</span></div>
-                    <div class="rationale">日元急贬(正乖离)=央行干预风险剧增。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">156.72</div>
-                    <div class="sub-val">Z: +1.79 | 乖离: +4.8%</div>
-                </div>
-            </div>
+            <tr>
+                <td>
+                    <span class="name">资产通胀 (J-REIT)</span>
+                    <span class="desc">逻辑: 地产信托。Z为负代表通缩回归，利空。</span>
+                </td>
+                <td><span class="tag blue">正常</span></td>
+                <td>
+                    <div class="z-val">Z: +0.00</div>
+                    <div class="rank-val">Rank: 62%</div>
+                </td>
+                <td><svg width="100" height="30"><polyline points="0.0,21.2 3.4,26.5 6.9,21.0 10.3,22.7 13.8,17.4 17.2,13.9 20.7,15.2 24.1,23.0 27.6,21.2 31.0,12.4 34.5,11.2 37.9,13.5 41.4,11.7 44.8,8.6 48.3,22.1 51.7,21.8 55.2,19.8 58.6,13.4 62.1,6.2 65.5,2.7 69.0,0.0 72.4,4.9 75.9,14.3 79.3,13.5 82.8,19.9 86.2,24.7 89.7,27.8 93.1,30.0 96.6,28.9 100.0,25.8" style="fill:none;stroke:#ef4444;stroke-width:1.5" /></svg></td>
+            </tr>
+            </tbody></table></div><div class='section-title'>主力资金 (Flow)</div><div class='card'><table><thead><tr><th width='35%'>指标</th><th width='15%'>状态</th><th width='20%'>数据 (Z | Rank)</th><th width='30%'>30日趋势</th></tr></thead><tbody>
+            <tr>
+                <td>
+                    <span class="name">巴菲特五大商社</span>
+                    <span class="desc">逻辑: 外资核心配置。Z为正代表外资流入强劲。</span>
+                </td>
+                <td><span class="tag blue">正常</span></td>
+                <td>
+                    <div class="z-val">Z: +0.00</div>
+                    <div class="rank-val">Rank: 94%</div>
+                </td>
+                <td><svg width="100" height="30"><polyline points="0.0,27.0 3.4,30.0 6.9,26.6 10.3,26.9 13.8,29.0 17.2,22.0 20.7,14.6 24.1,14.6 27.6,14.7 31.0,18.4 34.5,12.8 37.9,10.6 41.4,9.7 44.8,14.4 48.3,23.1 51.7,24.1 55.2,21.8 58.6,21.0 62.1,19.5 65.5,14.1 69.0,13.5 72.4,10.5 75.9,15.0 79.3,14.1 82.8,14.8 86.2,5.1 89.7,9.8 93.1,3.7 96.6,0.9 100.0,0.0" style="fill:none;stroke:#10b981;stroke-width:1.5" /></svg></td>
+            </tr>
             
-            <div class="item">
-                <div>
-                    <div class="label">外资风向 (三菱商事) <span class="tag green">低位安全</span></div>
-                    <div class="rationale">五大商社是外资配置日股的风向标。下跌=外资撤退。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">3746.00</div>
-                    <div class="sub-val">Z: -1.36 | 乖离: +26.4%</div>
-                </div>
-            </div>
-            </div><div class='card'><h3>T (技术)</h3>
-            <div class="item">
-                <div>
-                    <div class="label">AI/半导体 (东京电子) <span class="tag green">低位安全</span></div>
-                    <div class="rationale">日本半导体设备龙头。下跌=全球AI周期见顶。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">33070.00</div>
-                    <div class="sub-val">Z: -1.77 | 乖离: +31.7%</div>
-                </div>
-            </div>
-            
-            <div class="item">
-                <div>
-                    <div class="label">工业机器人 (Fanuc) <span class="tag green">低位安全</span></div>
-                    <div class="rationale">全球制造业Capex(资本开支)的最敏感指标。</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">6093.00</div>
-                    <div class="sub-val">Z: -3.44 | 乖离: +43.1%</div>
-                </div>
-            </div>
-            </div>
-            </div>
+            <tr>
+                <td>
+                    <span class="name">外部利率压力 (TLT)</span>
+                    <span class="desc">逻辑: Z为负(暴跌)代表美债利率飙升，日央行压力剧增。</span>
+                </td>
+                <td><span class="tag blue">正常</span></td>
+                <td>
+                    <div class="z-val">Z: +0.00</div>
+                    <div class="rank-val">Rank: 72%</div>
+                </td>
+                <td><svg width="100" height="30"><polyline points="0.0,0.0 3.4,6.7 6.9,10.6 10.3,12.5 13.8,16.5 17.2,15.1 20.7,22.2 24.1,16.4 27.6,17.8 31.0,17.9 34.5,14.9 37.9,13.8 41.4,19.1 44.8,22.8 48.3,21.2 51.7,21.4 55.2,22.8 58.6,20.2 62.1,18.3 65.5,14.6 69.0,12.9 72.4,10.0 75.9,13.1 79.3,23.6 82.8,23.3 86.2,21.4 89.7,24.9 93.1,27.9 96.6,30.0 100.0,29.3" style="fill:none;stroke:#ef4444;stroke-width:1.5" /></svg></td>
+            </tr>
+            </tbody></table></div>
             <div class="footer">
-                数据源: Yahoo Finance | 算法: Bias Z-Score (Win:252/0.85)
+                Algorithm: Standard Z-Score (Window: 252) | Data Source: Yahoo Finance Real-time
             </div>
         </div>
     </body>
