@@ -2,317 +2,314 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from datetime import datetime
-import time
 import os
 
 # ==========================================
-# 1. 核心计算引擎 (Optimized Bias Z-Score Engine)
+# 1. 核心量化引擎 (实时直连版)
 # ==========================================
-
 class MacroAnalyzer:
     def __init__(self):
-        self.window_long = 252  # 1年交易日基准
-        # 【优化1】统一数据长度要求为年线的85%
+        self.window_long = 252  # 1年交易日
         self.min_data_points = int(self.window_long * 0.85)
-        # 【优化2】阈值微调，适应日元资产的高波动性 (2.0 -> 2.2)
-        self.z_thresholds = {"red": 2.2, "orange": 1.2, "green": -1.0}
-    
-    def align_time_series(self, series1, series2):
-        """智能对齐：处理日股/美股休市日不同的问题"""
-        if series1.index.tz: series1.index = series1.index.tz_localize(None)
-        if series2.index.tz: series2.index = series2.index.tz_localize(None)
-        
-        all_dates = series1.index.union(series2.index).sort_values()
-        s1 = series1.reindex(all_dates).ffill()
-        s2 = series2.reindex(all_dates).ffill()
-        
-        valid_mask = ~(s1.isna() | s2.isna())
-        return s1[valid_mask], s2[valid_mask]
 
-    def calculate_robust_z_score(self, series, inverse=False):
-        """核心算法：乖离率 Z-Score"""
-        if len(series) < self.min_data_points: return 0, 0.0
+    def fetch_batch_data(self, tickers_dict, period="2y"):
+        """
+        🚀 实时获取数据 (无缓存模式)
+        每次运行都强制从网络下载最新数据。
+        """
+        # 1. 提取所有 Ticker 并去重
+        all_tickers = list(set([t for val in tickers_dict.values() for t in (val if isinstance(val, list) else [val])]))
+        print(f"🌐 [Network] 正在请求实时数据 ({len(all_tickers)} 个标的)...")
+        
+        try:
+            # group_by='ticker' 确保数据结构清晰
+            df = yf.download(all_tickers, period=period, group_by='ticker', auto_adjust=False, threads=True)
+            if df.empty:
+                print("⚠️ 警告: 下载的数据为空，请检查网络连接。")
+            return df
+        except Exception as e:
+            print(f"❌ 下载失败: {e}")
+            return pd.DataFrame()
 
-        # 1. 计算年线
-        rolling_mean = series.rolling(window=self.window_long, min_periods=self.min_data_points).mean()
-        
-        # 2. 计算乖离率 (Bias)
-        valid_idx = rolling_mean.index[~rolling_mean.isna()]
-        if len(valid_idx) == 0: return 0, 0.0
-        
-        series_valid = series.loc[valid_idx]
-        mean_valid = rolling_mean.loc[valid_idx]
-        bias_series = (series_valid / mean_valid) - 1
-        
-        # 3. Z-Score 标准化
-        bias_mean = bias_series.rolling(window=self.window_long).mean()
-        bias_std = bias_series.rolling(window=self.window_long).std()
-        
-        last_idx = bias_series.index[-1]
-        cur_bias = bias_series.loc[last_idx]
-        cur_mean = bias_mean.loc[last_idx]
-        cur_std = bias_std.loc[last_idx]
-        
-        if pd.isna(cur_std) or cur_std == 0: z_score = 0
-        else: z_score = (cur_bias - cur_mean) / cur_std
-            
-        # Winsorizing
-        z_score = np.clip(z_score, -4.5, 4.5)
-        
-        # 风险方向 (Inverse=True: 跌是风险)
-        risk_z = -z_score if inverse else z_score
-        return risk_z, cur_bias
-
-    def fetch_data_safe(self, ticker, period="5y"):
-        """带重试的数据获取"""
-        for _ in range(3):
-            try:
-                df = yf.Ticker(ticker).history(period=period, auto_adjust=False)
-                if not df.empty and len(df) > 10: return df['Close']
-            except: time.sleep(1)
+    def extract_series(self, df_batch, ticker):
+        """安全提取单个序列"""
+        try:
+            # 兼容 yfinance 的多层索引结构
+            if ticker in df_batch.columns.levels[0]:
+                data = df_batch[ticker]
+                # 优先 Close, 其次 Adj Close
+                s = data['Close'] if 'Close' in data.columns else data.get('Adj Close', pd.Series(dtype=float))
+                # 清洗数据：去0，去空，移除时区
+                s = s.replace(0, np.nan).dropna()
+                if s.index.tz: s.index = s.index.tz_localize(None)
+                return s
+        except: pass
         return pd.Series(dtype=float)
 
-    def fetch_and_analyze(self, name, rationale, ticker=None, 
-                         inverse=False, external_series=None, fallback_ticker=None):
-        try:
-            series = None
-            display_ticker = ticker
-            
-            if external_series is not None:
-                series = external_series
-                display_ticker = "Composite"
-            else:
-                series = self.fetch_data_safe(ticker)
-                if (series.empty or len(series) < self.min_data_points) and fallback_ticker:
-                    series = self.fetch_data_safe(fallback_ticker)
-                    display_ticker = fallback_ticker
-                if series.empty: raise ValueError("Data Error")
-
-            if series.index.tz: series.index = series.index.tz_localize(None)
-            current_val = series.iloc[-1]
-            z_score, bias = self.calculate_robust_z_score(series, inverse)
-            
-            if z_score > self.z_thresholds["red"]: level, text = "red", "极度异常"
-            elif z_score > self.z_thresholds["orange"]: level, text = "orange", "显著偏离"
-            elif z_score < self.z_thresholds["green"]: level, text = "green", "低位安全"
-            else: level, text = "yellow", "均值回归"
-            
-            return {
-                "name": name, "value": current_val, "bias": bias,
-                "z": z_score, "level": level, "text": text, 
-                "rationale": rationale, "ticker": display_ticker
-            }
-        except Exception as e:
-            return {"name": name, "value": 0, "level": "gray", "text": "Error", "rationale": str(e)[:20]}
-
-analyzer = MacroAnalyzer()
-
-# ==========================================
-# 2. 日本指标配置 (Optimized Sensors)
-# ==========================================
-
-def get_japan_indicators():
-    print("🔍 正在扫描日本股市 (Japan Real-Time Data)...")
-    indicators = {"E (预期)": [], "S (结构)": [], "P (权力)": [], "T (技术)": []}
-
-    # --- E: 预期 (Sentiment) ---
-    # 1. 恐慌指数 (N225 Volatility)
-    try:
-        n225 = analyzer.fetch_data_safe("^N225")
-        if not n225.empty:
-            # 手动计算20日滚动波动率
-            returns = np.log(n225 / n225.shift(1))
-            vol = returns.rolling(20).std() * np.sqrt(252) * 100
-            indicators["E (预期)"].append(analyzer.fetch_and_analyze(
-                name="恐慌指数 (N225 Vol)", external_series=vol,
-                rationale="日经波动率。飙升(正乖离)=市场恐慌。", inverse=False
-            ))
-        else: raise ValueError
-    except:
-        indicators["E (预期)"].append({"name": "恐慌指数", "value": 0, "level": "gray", "text": "Error"})
-
-    # 2. 输入性通胀 (Pain Index = Oil * Yen) - 核心原创指标，保留
-    try:
-        oil = analyzer.fetch_data_safe("CL=F")
-        yen = analyzer.fetch_data_safe("USDJPY=X")
-        if not oil.empty and not yen.empty:
-            oil, yen = analyzer.align_time_series(oil, yen)
-            pain = oil * yen
-            indicators["E (预期)"].append(analyzer.fetch_and_analyze(
-                name="家庭痛苦指数 (Oil*Yen)", external_series=pain,
-                rationale="油价与汇率双升=购买力缩水，利空消费。", inverse=False # 涨是痛苦(风险)
-            ))
-        else: raise ValueError
-    except:
-        indicators["E (预期)"].append({"name": "痛苦指数", "value": 0, "level": "gray", "text": "Error"})
-
-    # --- S: 结构 (Structure) ---
-    # 1. 【优化】替换优衣库，使用东证REITs指数
-    indicators["S (结构)"].append(analyzer.fetch_and_analyze(
-        name="通胀预期 (东证REITs)", ticker="1343.T", fallback_ticker="TREIT",
-        rationale="房地产信托ETF。上涨确认国内资产通胀逻辑，下跌则为通缩回归。", inverse=True # 跌是风险(通缩)
-    ))
-
-    # 2. 央行博弈 (三菱日联 8306.T) - 保留
-    indicators["S (结构)"].append(analyzer.fetch_and_analyze(
-        name="加息押注 (三菱日联)", ticker="8306.T", fallback_ticker="MUFG",
-        rationale="银行股暴涨(正乖离)=市场押注YCC取消/加息，利空债市。", inverse=False # 暴涨是系统性风险
-    ))
-
-    # --- P: 权力 (Power / BOJ) ---
-    # 1. 汇率干预线 (USDJPY)
-    indicators["P (权力)"].append(analyzer.fetch_and_analyze(
-        name="汇率风险 (USDJPY)", ticker="USDJPY=X",
-        rationale="日元急贬(正乖离)=央行干预风险剧增。", inverse=False # 涨是风险
-    ))
-
-    # 2. 外资风向 (三菱商事 8058.T) - 巴菲特指标
-    indicators["P (权力)"].append(analyzer.fetch_and_analyze(
-        name="外资风向 (三菱商事)", ticker="8058.T", fallback_ticker="8031.T", # 备用三井物产
-        rationale="五大商社是外资配置日股的风向标。下跌=外资撤退。", inverse=True # 跌是风险
-    ))
-
-    # --- T: 技术 (Technology) ---
-    # 1. 半导体周期 (东京电子 8035.T)
-    indicators["T (技术)"].append(analyzer.fetch_and_analyze(
-        name="AI/半导体 (东京电子)", ticker="8035.T",
-        rationale="日本半导体设备龙头。下跌=全球AI周期见顶。", inverse=True
-    ))
-
-    # 2. 全球资本开支 (Fanuc 6954.T)
-    indicators["T (技术)"].append(analyzer.fetch_and_analyze(
-        name="工业机器人 (Fanuc)", ticker="6954.T",
-        rationale="全球制造业Capex(资本开支)的最敏感指标。", inverse=True
-    ))
-
-    return indicators
-
-# ==========================================
-# 3. 报告生成 (Fusion Logic)
-# ==========================================
-
-def generate_html_report(indicators):
-    # 1. 熔断逻辑
-    st = {}
-    for cat in indicators.values():
-        for item in cat:
-            if "痛苦" in item['name']: st['Pain'] = item['level']
-            if "加息" in item['name']: st['Bank'] = item['level'] # 三菱日联
-            if "汇率" in item['name']: st['Yen'] = item['level']
-            if "REITs" in item['name']: st['Reits'] = item['level']
-
-    # 默认状态
-    overall_status = "🟢 市场环境良好 (Positive)"
-    summary_text = "宏观指标平稳。通胀温和，汇率处于可控区间，外资情绪稳定。"
-    header_bg = "#bc002d" # 日本红
-    body_bg = "#f9f9f9"
-    
-    # --- 优化的熔断逻辑 ---
-    veto_msgs = []
-    
-    # 逻辑1: 汇率失控 (Yen collapse)
-    if st.get('Yen') == 'red':
-        veto_msgs.append("汇率失控(干预风险)")
+    def compute_synthetic_index(self, series_list, operation="product"):
+        """
+        🔧 核心修复：跨市场数据对齐引擎
+        解决美股/日股休市日不一致导致的数据断裂问题。
+        """
+        if not series_list: return pd.Series(dtype=float)
         
-    # 逻辑2: 滞胀+加息双杀 (Stagflation Shock)
-    # 痛苦指数飙升(通胀) + 银行股暴涨(加息预期) = 实体经济崩溃
-    if st.get('Pain') == 'red' and st.get('Bank') == 'red':
-        veto_msgs.append("滞胀+加息双杀")
+        # 1. 取所有日期的并集
+        all_dates = series_list[0].index
+        for s in series_list[1:]: all_dates = all_dates.union(s.index)
+        all_dates = all_dates.sort_values()
         
-    # 逻辑3: 通缩回归 (Deflation Return)
-    # REITs崩盘 = 资产通胀故事破灭
-    if st.get('Reits') == 'red':
-        veto_msgs.append("通缩回归(REITs崩盘)")
+        # 2. 前向填充 (FFill): 如果今天某市场休市，沿用昨天价格
+        aligned = [s.reindex(all_dates).ffill() for s in series_list]
+        
+        # 3. 向量化计算
+        result = aligned[0]
+        if operation == "product": # 乘法 (如 痛苦指数)
+            for s in aligned[1:]: result = result * s
+        elif operation == "sum":   # 加法 (如 巴菲特篮子)
+            for s in aligned[1:]: result = result + s
+            
+        return result.dropna()
 
-    if veto_msgs:
-        overall_status = "🔴 系统性熔断 (SYSTEM FAILURE)"
-        summary_text = f"⚠️ 触发机制: {' + '.join(veto_msgs)}。建议回避日股，持有现金。"
-        body_bg = "#fff0f0"
+    def generate_sparkline(self, series, days=30):
+        """🎨 生成 SVG 微型走势图"""
+        if len(series) < days: return ""
+        # 取最近N天数据
+        data = series.iloc[-days:].values
+        min_val, max_val = np.min(data), np.max(data)
+        if max_val == min_val: return ""
+        
+        points = []
+        width, height = 100, 30
+        step = width / (days - 1)
+        
+        for i, val in enumerate(data):
+            x = i * step
+            # SVG坐标系翻转 (y=0在顶部)
+            y = height - ((val - min_val) / (max_val - min_val) * height)
+            points.append(f"{x:.1f},{y:.1f}")
+            
+        color = "#ef4444" if data[-1] < data[0] else "#10b981" # 跌红涨绿
+        return f'<svg width="{width}" height="{height}"><polyline points="{" ".join(points)}" style="fill:none;stroke:{color};stroke-width:1.5" /></svg>'
+
+    def analyze_item(self, name, series, risk_type="high_is_risk", desc=""):
+        """
+        ⚖️ 核心评级逻辑 (正统 Z-Score)
+        正数 = 高于均线 (Up Trend)
+        负数 = 低于均线 (Down Trend)
+        """
+        if series.empty or len(series) < self.min_data_points:
+            return {"name": name, "level": "gray", "text": "数据不足", "z": 0, "pct": 0, "spark": ""}
+
+        # 1. 计算均线与乖离率
+        ma252 = series.rolling(window=self.window_long).mean()
+        bias = (series / ma252) - 1
+        
+        # 2. 计算 Z-Score (不人工取反，保持统计真实性)
+        bias_mean = bias.rolling(window=self.window_long).mean()
+        bias_std = bias.rolling(window=self.window_long).std()
+        
+        cur_val = series.iloc[-1]
+        cur_bias = bias.iloc[-1]
+        
+        if pd.isna(bias_std.iloc[-1]) or bias_std.iloc[-1] == 0: z = 0
+        else: z = (cur_bias - bias_mean.iloc[-1]) / bias_std.iloc[-1]
+        z = np.clip(z, -4.5, 4.5)
+
+        # 3. 计算历史百分位 (Rank) - 衡量当前位置在过去一年的极端程度
+        recent_bias = bias.iloc[-self.window_long:]
+        pct_rank = (recent_bias < cur_bias).mean() * 100
+
+        # 4. 颜色评级判断 (根据业务类型)
+        level, text = "blue", "正常"
+        
+        # A: 越高越危险 (如: VIX, 痛苦指数)
+        if risk_type == "high_is_risk":
+            if z > 2.2:      level, text = "red", "极度过热 ⚠️"
+            elif z > 1.25:   level, text = "orange", "风险上升"
+            elif z < -1.0:   level, text = "green", "低位安全"
+            
+        # B: 越低越危险 (如: 股市, 经济数据)
+        elif risk_type == "low_is_risk":
+            if z < -2.2:     level, text = "red", "崩盘/枯竭 ⚠️"
+            elif z < -1.25:  level, text = "orange", "显著回调"
+            elif z > 1.5:    level, text = "green", "趋势强劲"
+            
+        # C: 双向风险 (如: 汇率)
+        elif risk_type == "two_sided":
+            if z > 2.5:      level, text = "red", "失控贬值 (干预)"
+            elif z > 1.0:    level, text = "green", "有利贬值"
+            elif z < -2.0:   level, text = "red", "暴力升值 (崩盘)"
+
+        spark = self.generate_sparkline(series)
+
+        return {
+            "name": name, "value": cur_val, "z": z, "bias": cur_bias, 
+            "pct": pct_rank, "level": level, "text": text, 
+            "desc": desc, "spark": spark
+        }
+
+# ==========================================
+# 2. 业务配置 (Japan Config)
+# ==========================================
+def get_japan_dashboard():
+    analyzer = MacroAnalyzer()
     
-    # 逻辑4: 结构性高压 (High Stress)
-    # 痛苦指数红了，或者银行股红了，但还没共振
-    elif st.get('Pain') == 'red' or st.get('Bank') == 'red':
-        overall_status = "🟠 结构性高压 (High Stress)"
-        summary_text = "部分宏观因子(通胀/利率)出现极端乖离，市场波动率将显著上升。"
-        header_bg = "#e67e22" # 橙色
+    # 定义需要的代码
+    config = {
+        "N225": "^N225",           # 日经225
+        "Oil": "CL=F",             # WTI原油
+        "Yen": "USDJPY=X",         # 美元兑日元
+        "Banks": "8306.T",         # 三菱日联 (加息代理)
+        "REITs": "1343.T",         # 东证REITs (资产通胀)
+        "Semi": "8035.T",          # 东京电子 (科技Beta)
+        "TLT": "TLT",              # 20年美债 (外部压力)
+        "Buffett": ["8058.T", "8031.T", "8001.T", "8002.T", "8053.T"] # 五大商社
+    }
+    
+    # 1. 实时获取
+    df = analyzer.fetch_batch_data(config)
+    dashboard = {"宏观脉搏 (Macro)": [], "市场结构 (Structure)": [], "主力资金 (Flow)": []}
 
-    # 2. 生成HTML
+    # 提取 Series
+    s_oil = analyzer.extract_series(df, "CL=F")
+    s_yen = analyzer.extract_series(df, "USDJPY=X")
+    s_bank = analyzer.extract_series(df, "8306.T")
+    s_reit = analyzer.extract_series(df, "1343.T")
+    s_tlt = analyzer.extract_series(df, "TLT")
+
+    # --- 组合指标逻辑 ---
+    
+    # 1. 家庭痛苦指数 (Oil * Yen)
+    s_pain = analyzer.compute_synthetic_index([s_oil, s_yen], "product")
+    dashboard["宏观脉搏 (Macro)"].append(analyzer.analyze_item(
+        "家庭痛苦指数", s_pain, "high_is_risk", 
+        "逻辑: 油价×汇率。Z为正 = 输入性通胀压力大。"
+    ))
+    
+    # 2. 汇率双向风险
+    dashboard["宏观脉搏 (Macro)"].append(analyzer.analyze_item(
+        "日元汇率 (USD/JPY)", s_yen, "two_sided",
+        "逻辑: Z>2.5 警戒央行干预; Z<-2.0 警戒套息平仓。"
+    ))
+
+    # 3. 结构性指标
+    dashboard["市场结构 (Structure)"].append(analyzer.analyze_item(
+        "加息押注 (MUFG)", s_bank, "high_is_risk", 
+        "逻辑: 银行暴涨(Z正) = 押注YCC取消 = 债市利空。"
+    ))
+    
+    dashboard["市场结构 (Structure)"].append(analyzer.analyze_item(
+        "资产通胀 (J-REIT)", s_reit, "low_is_risk",
+        "逻辑: 地产信托。Z为负代表通缩回归，利空。"
+    ))
+
+    # 4. 巴菲特篮子 (Sum of 5 Stocks)
+    buffett_list = [analyzer.extract_series(df, t) for t in config["Buffett"]]
+    s_buffett = analyzer.compute_synthetic_index(buffett_list, "sum")
+    dashboard["主力资金 (Flow)"].append(analyzer.analyze_item(
+        "巴菲特五大商社", s_buffett, "low_is_risk",
+        "逻辑: 外资核心配置。Z为正代表外资流入强劲。"
+    ))
+    
+    # 5. 外部利率压力 (TLT)
+    dashboard["主力资金 (Flow)"].append(analyzer.analyze_item(
+        "外部利率压力 (TLT)", s_tlt, "low_is_risk",
+        "逻辑: Z为负(暴跌)代表美债利率飙升，日央行压力剧增。"
+    ))
+
+    return dashboard
+
+# ==========================================
+# 3. 报告可视化 (HTML Generator)
+# ==========================================
+def generate_html(dashboard):
+    # 熔断判定逻辑
+    st = {item['name']: item['level'] for cat in dashboard.values() for item in cat}
+    
+    overall_title = "🟢 市场环境：温和 (Neutral)"
+    header_bg = "linear-gradient(135deg, #10b981 0%, #059669 100%)" # Green
+    
+    veto_triggers = []
+    if st.get('家庭痛苦指数') == 'red' and st.get('加息押注 (MUFG)') == 'red':
+        veto_triggers.append("滞胀双杀 (Stagflation)")
+    if st.get('日元汇率 (USD/JPY)') == 'red':
+        veto_triggers.append("汇率失控 (FX Crisis)")
+    if st.get('外部利率压力 (TLT)') == 'red':
+        veto_triggers.append("美债风暴 (Rates Shock)")
+
+    if veto_triggers:
+        overall_title = f"🔴 极度风险：{' + '.join(veto_triggers)}"
+        header_bg = "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)" # Red
+
     html = f"""
     <!DOCTYPE html>
-    <html>
+    <html lang="zh">
     <head>
         <meta charset="UTF-8">
-        <title>Japan Stock ESPT Dashboard (Optimized)</title>
+        <title>Japan Real-Time Sentinel</title>
         <style>
-            body {{ font-family: "Hiragino Kaku Gothic Pro", "Meiryo", sans-serif; background-color: {body_bg}; padding: 20px; color: #333; }}
-            .container {{ max-width: 960px; margin: auto; background: white; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-radius: 4px; }}
-            .header {{ background: {header_bg}; color: white; padding: 30px; text-align: center; }}
-            .header h1 {{ margin: 0; font-size: 26px; letter-spacing: 2px; }}
-            .timestamp {{ font-size: 12px; opacity: 0.8; margin-top: 5px; }}
+            :root {{ --bg: #f8fafc; --card: #ffffff; --text: #334155; }}
+            body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 40px; margin: 0; }}
+            .container {{ max-width: 960px; margin: 0 auto; }}
             
-            .status-box {{ padding: 25px; text-align: center; border-bottom: 1px solid #eee; background: #fff; }}
-            .status-title {{ font-size: 22px; font-weight: bold; color: {header_bg}; margin-bottom: 10px; }}
+            .header {{ background: {header_bg}; color: white; padding: 35px; border-radius: 12px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }}
+            .header h1 {{ margin: 0; font-size: 26px; }}
+            .meta {{ font-size: 14px; opacity: 0.9; margin-top: 10px; font-family: monospace; }}
             
-            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px; }}
-            @media (max-width: 700px) {{ .grid {{ grid-template-columns: 1fr; }} }}
+            .section-title {{ font-size: 16px; font-weight: bold; color: #64748b; margin: 25px 0 10px 5px; border-left: 4px solid #cbd5e1; padding-left: 10px; }}
             
-            .card {{ padding: 15px; border: 1px solid #eee; background: #fff; }}
-            .card h3 {{ margin-top: 0; color: #333; font-size: 15px; border-left: 4px solid {header_bg}; padding-left: 10px; }}
+            .card {{ background: white; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; }}
+            table {{ width: 100%; border-collapse: collapse; }}
+            th {{ text-align: left; padding: 12px 20px; background: #f1f5f9; color: #64748b; font-size: 12px; font-weight: 600; }}
+            td {{ padding: 12px 20px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }}
+            tr:last-child td {{ border-bottom: none; }}
             
-            .item {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 5px; border-bottom: 1px dotted #eee; }}
-            .item:last-child {{ border-bottom: none; }}
+            .name {{ font-weight: bold; font-size: 14px; display: block; }}
+            .desc {{ font-size: 11px; color: #94a3b8; }}
             
-            .label {{ font-weight: 600; font-size: 14px; }}
-            .rationale {{ font-size: 10px; color: #888; margin-top: 3px; }}
+            .tag {{ display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: white; }}
+            .red {{ background: #ef4444; }} .orange {{ background: #f97316; }} 
+            .green {{ background: #10b981; }} .blue {{ background: #3b82f6; }} .gray {{ background: #94a3b8; }}
             
-            .values {{ text-align: right; }}
-            .main-val {{ font-weight: bold; font-size: 16px; font-family: monospace; }}
-            .sub-val {{ font-size: 11px; color: #666; }}
+            .z-val {{ font-family: monospace; font-weight: bold; font-size: 13px; }}
+            .rank-val {{ font-size: 10px; color: #64748b; }}
             
-            .tag {{ padding: 2px 6px; border-radius: 2px; font-size: 10px; color: white; margin-left: 5px; }}
-            .red {{ background: #c0392b; }} .orange {{ background: #e67e22; }} 
-            .yellow {{ background: #f1c40f; color: #333; }} .green {{ background: #27ae60; }} .gray {{ background: #95a5a6; }}
-            
-            .footer {{ padding: 15px; text-align: center; background: #f4f4f4; font-size: 11px; color: #777; border-top: 1px solid #ddd; }}
+            .footer {{ text-align: center; margin-top: 40px; font-size: 11px; color: #cbd5e1; }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <h1>🇯🇵 ESPT 日本股票风险仪表盘 (Optimized)</h1>
-                <div class="timestamp">生成时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
+                <h1>🇯🇵 Japan Sentinel <span style="font-size:16px; opacity:0.8;">| 实时宏观监测</span></h1>
+                <div class="meta">{overall_title}</div>
+                <div class="meta">数据更新: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</div>
             </div>
-            <div class="status-box">
-                <div class="status-title">{overall_status}</div>
-                <div>{summary_text}</div>
-            </div>
-            <div class="grid">
     """
     
-    for dim, items in indicators.items():
-        html += f"<div class='card'><h3>{dim}</h3>"
+    for cat, items in dashboard.items():
+        html += f"<div class='section-title'>{cat}</div><div class='card'><table>"
+        html += "<thead><tr><th width='35%'>指标</th><th width='15%'>状态</th><th width='20%'>数据 (Z | Rank)</th><th width='30%'>30日趋势</th></tr></thead><tbody>"
+        
         for item in items:
-            bias_val = item.get('bias', 0) * 100
-            bias_str = f"{bias_val:+.1f}%" if item.get('ticker') != "Error" else "-"
-            
             html += f"""
-            <div class="item">
-                <div>
-                    <div class="label">{item['name']} <span class="tag {item['level']}">{item['text']}</span></div>
-                    <div class="rationale">{item['rationale']}</div>
-                </div>
-                <div class="values">
-                    <div class="main-val">{item.get('value', 0):.2f}</div>
-                    <div class="sub-val">Z: {item.get('z', 0):+.2f} | 乖离: {bias_str}</div>
-                </div>
-            </div>
+            <tr>
+                <td>
+                    <span class="name">{item['name']}</span>
+                    <span class="desc">{item['desc']}</span>
+                </td>
+                <td><span class="tag {item['level']}">{item['text']}</span></td>
+                <td>
+                    <div class="z-val">Z: {item['z']:+.2f}</div>
+                    <div class="rank-val">Rank: {item['pct']:.0f}%</div>
+                </td>
+                <td>{item['spark']}</td>
+            </tr>
             """
-        html += "</div>"
+        html += "</tbody></table></div>"
         
     html += """
-            </div>
             <div class="footer">
-                数据源: Yahoo Finance | 算法: Bias Z-Score (Win:252/0.85)
+                Algorithm: Standard Z-Score (Window: 252) | Data Source: Yahoo Finance Real-time
             </div>
         </div>
     </body>
@@ -322,12 +319,13 @@ def generate_html_report(indicators):
     filename = "japan_espt_optimized.html"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(html)
-    print(f"✅ 报告已生成: {os.path.abspath(filename)}")
+    print(f"✅ 报告生成完毕: {os.path.abspath(filename)}")
 
 if __name__ == "__main__":
     try:
-        data = get_japan_indicators()
-        generate_html_report(data)
+        data = get_japan_dashboard()
+        generate_html(data)
+    except KeyboardInterrupt:
+        print("\n用户停止。")
     except Exception as e:
-        print(f"❌ 程序运行出错: {e}")
-
+        print(f"\n❌ 出错: {e}")
