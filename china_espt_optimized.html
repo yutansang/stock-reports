@@ -4,9 +4,9 @@
     <head>
         <meta charset="UTF-8">
         <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #fadbd8; padding: 20px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #fdebd0; padding: 20px; }
             .container { max-width: 900px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); overflow: hidden; }
-            .header { background: #c0392b; color: white; padding: 30px; text-align: center; }
+            .header { background: #d35400; color: white; padding: 30px; text-align: center; }
             .status-box { padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
             .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 25px; }
             @media(max-width: 600px) { .grid { grid-template-columns: 1fr; } }
@@ -26,39 +26,39 @@
         <div class="container">
             <div class="header">
                 <h1 style="margin:0">🇨🇳 ESPT 宏观风险监控 (Pro)</h1>
-                <div style="font-size:12px; opacity:0.8; margin-top:10px">生成时间: 2026-04-11 07:43:14</div>
+                <div style="font-size:12px; opacity:0.8; margin-top:10px">生成时间: 2026-04-11 08:31:52</div>
             </div>
             <div class="status-box">
-                <h2 style="margin:0; color:#c0392b">🔴 红色警报 (CRITICAL RISK)</h2>
-                <p style="color:#666; font-size:14px; margin-top:5px">多个核心宏观指标出现极度异常，建议防御。</p>
+                <h2 style="margin:0; color:#d35400">🟠 结构性压力 (Structural Stress)</h2>
+                <p style="color:#666; font-size:14px; margin-top:5px">部分指标出现显著偏离，需密切关注。</p>
             </div>
             <div class="grid">
                 <div class='card'><h3>E (预期)</h3>
             <div class="item">
                 <div style="flex:1">
                     <div class="label">风险偏好 (KWEB/FXI) 
-                        <span class="badge red">极度异常</span>
+                        <span class="badge gray">数据缺失</span>
                     </div>
                     <div class="rationale">互联网(进攻)/银行(防御)比率。暴跌代表市场极度避险。</div>
                 </div>
                 <div class="values">
-                    <div class="main-val">0.79</div>
-                    <div class="sub-val">Z: <b>+2.3</b> | 乖离: -15.0%</div>
-                    <div class="sub-val" style="color:#2ecc71">5日动量: ⬆ +0.2%</div>
+                    <div class="main-val">0.00</div>
+                    <div class="sub-val">Z: <b>+0.0</b> | 乖离: +0.0%</div>
+                    <div class="sub-val" style="color:#2ecc71">5日动量: ⬇ +0.0%</div>
                 </div>
             </div>
             
             <div class="item">
                 <div style="flex:1">
                     <div class="label">大盘情绪 (FXI) 
-                        <span class="badge red">极度异常</span>
+                        <span class="badge orange">显著偏离</span>
                     </div>
                     <div class="rationale">离岸中国蓝筹。负乖离过大代表流动性恐慌。</div>
                 </div>
                 <div class="values">
-                    <div class="main-val">36.25</div>
-                    <div class="sub-val">Z: <b>+3.3</b> | 乖离: -4.4%</div>
-                    <div class="sub-val" style="color:#2ecc71">5日动量: ⬆ +1.9%</div>
+                    <div class="main-val">57.18</div>
+                    <div class="sub-val">Z: <b>+2.1</b> | 乖离: -3.3%</div>
+                    <div class="sub-val" style="color:#2ecc71">5日动量: ⬆ +2.4%</div>
                 </div>
             </div>
             </div><div class='card'><h3>S (结构)</h3>
